@@ -11,43 +11,49 @@ app.use(cors());
 // Serve static files from the "FYP-25-S2-09-main/FYP Websites" directory
 app.use(express.static(path.join(__dirname, 'FYP-25-S2-09-main', 'FYP Websites')));
 
-// Handle SPA routing - serve index.html for all routes
+// Handle routing - serve specific HTML files
 app.get('*', (req, res) => {
-  // Check if the request is for a specific HTML file
   const requestedFile = req.path;
+  console.log(`🔍 Requested path: ${requestedFile}`);
   
-  // List of your HTML files
+  // List of your HTML files (without leading slash for file system)
   const htmlFiles = [
-    '/index.html',
-    '/Login.html',
-    '/Signup.html',
-    '/BusinessUserSignup.html',
-    '/BusinessUser.html',
-    '/BusinessUserProfile.html',
-    '/BusinessUserSettings.html',
-    '/database_setup.html',
-    '/Events.html',
-    '/feedback-form.html',
-    '/Leaderboard.html',
-    '/ManageBusiness.html',
-    '/ManageLandingPage.html',
-    '/ManageUsers.html',
-    '/PendingApplications.html',
-    '/Posts.html',
-    '/Services.html',
-    '/SystemAdmin.html'
+    'index.html',
+    'Login.html',
+    'Signup.html',
+    'BusinessUserSignup.html',
+    'BusinessUser.html',
+    'BusinessUserProfile.html',
+    'BusinessUserSettings.html',
+    'database_setup.html',
+    'Events.html',
+    'feedback-form.html',
+    'Leaderboard.html',
+    'ManageBusiness.html',
+    'ManageLandingPage.html',
+    'ManageUsers.html',
+    'PendingApplications.html',
+    'Posts.html',
+    'Services.html',
+    'SystemAdmin.html'
   ];
 
-  // If requesting a specific HTML file, serve it
-  if (htmlFiles.includes(requestedFile)) {
-    res.sendFile(path.join(__dirname, 'FYP-25-S2-09-main', 'FYP Websites', requestedFile));
-  } 
+  // Remove leading slash for file matching
+  const fileName = requestedFile.startsWith('/') ? requestedFile.substring(1) : requestedFile;
+  
   // If requesting root, serve index.html
-  else if (requestedFile === '/') {
+  if (requestedFile === '/') {
+    console.log(`📄 Serving: index.html`);
     res.sendFile(path.join(__dirname, 'FYP-25-S2-09-main', 'FYP Websites', 'index.html'));
   }
-  // For any other route, serve index.html (SPA behavior)
+  // If requesting a specific HTML file that exists, serve it
+  else if (htmlFiles.includes(fileName)) {
+    console.log(`📄 Serving: ${fileName}`);
+    res.sendFile(path.join(__dirname, 'FYP-25-S2-09-main', 'FYP Websites', fileName));
+  }
+  // For any other route, check if it's a static asset first
   else {
+    console.log(`❓ Unknown route: ${requestedFile}, serving index.html as fallback`);
     res.sendFile(path.join(__dirname, 'FYP-25-S2-09-main', 'FYP Websites', 'index.html'));
   }
 });
