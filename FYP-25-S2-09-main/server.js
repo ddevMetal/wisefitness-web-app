@@ -29,7 +29,6 @@ app.get('*', (req, res) => {
     'Events.html',
     'feedback-form.html',
     'Leaderboard.html',
-    'ManageBusiness.html',
     'ManageLandingPage.html',
     'ManageUsers.html',
     'PendingApplications.html',
@@ -54,7 +53,23 @@ app.get('*', (req, res) => {
   // If requesting a specific HTML file that exists, serve it
   else if (matchingFile) {
     console.log(`📄 Serving: ${matchingFile}`);
-    res.sendFile(path.join(__dirname, 'FYP-25-S2-09-main', 'FYP Websites', matchingFile));
+    
+    // For ManageLandingPage.html, inject environment variables
+    if (matchingFile === 'ManageLandingPage.html') {
+      const fs = require('fs');
+      let htmlContent = fs.readFileSync(path.join(__dirname, 'FYP-25-S2-09-main', 'FYP Websites', matchingFile), 'utf8');
+      
+      // Inject OpenAI API key
+      const apiKey = process.env.OPENAI_API_KEY || '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';
+      htmlContent = htmlContent.replace(
+        /const OPENAI_API_KEY = '[^']*';/,
+        `const OPENAI_API_KEY = '${apiKey}';`
+      );
+      
+      res.send(htmlContent);
+    } else {
+      res.sendFile(path.join(__dirname, 'FYP-25-S2-09-main', 'FYP Websites', matchingFile));
+    }
   }
   // For any other route, check if it's a static asset first
   else {
