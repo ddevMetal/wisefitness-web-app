@@ -1,0 +1,27 @@
+{
+  "name": "wise-fitness-website",
+  "version": "1.0.0",
+  "description": "Wise Fitness - Dynamic fitness website with Firebase integration",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "echo 'No build step required for static files'"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "path": "^0.12.7",
+    "cors": "^2.8.5"
+  },
+  "keywords": [
+    "fitness",
+    "website",
+    "firebase",
+    "express"
+  ],
+  "author": "FYP-25-S2-09",
+  "license": "MIT"
+}
