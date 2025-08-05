@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Event Leaderboards - Wise Fitness</title>
+  <style>
+    :root {
+      --primary: #007bff;
+      --light-bg: #f9f9f9;
+      --dark-bg: #1f1f1f;
+      --card-bg: #ffffff;
+      --card-dark: #2c2c2c;
+      --text-light: #111;
+      --text-dark: #f1f1f1;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --radius: 14px;
+      --transition: 0.3s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--light-bg);
+      color: var(--text-light);
+      transition: var(--transition);
+      overflow-x: hidden;
+    }
+
+    body.dark {
+      background: var(--dark-bg);
+      color: var(--text-dark);
+    }
+
+    /* Toolbar styles */
+    header.toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #0066cc;
+      padding: 8px 16px;
+      color: white;
+      border-radius: 5px;
+      user-select: none;
+      margin-bottom: 20px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      height: 56px;
+    }
+
+    header.toolbar > div {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    header.toolbar button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    #backBtn {
+      font-size: 24px;
+      padding: 0;
+      line-height: 1;
+    }
+
+    #modeToggle {
+      font-size: 20px;
+    }
+
+    #menuBtn {
+      font-size: 24px;
+    }
+
+    header.toolbar span.title {
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 76px auto 20px;
+      padding: 0 20px;
+    }
+
+    /* Event Leaderboard styles */
+    .event-section {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 30px;
+      box-shadow: var(--shadow);
+    }
+
+    body.dark .event-section {
+      background: var(--card-dark);
+    }
+
+    .event-header {
+      margin-bottom: 20px;
+    }
+
+    .event-title {
+      font-size: 24px;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .event-info {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    body.dark .event-info {
+      color: #aaa;
+    }
+
+    .event-metrics {
+      font-size: 14px;
+      color: #888;
+    }
+
+    /* Leaderboard Table styles */
+    .leaderboard-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .leaderboard-table th,
+    .leaderboard-table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    body.dark .leaderboard-table th,
+    body.dark .leaderboard-table td {
+      border-bottom: 1px solid #444;
+    }
+
+    .leaderboard-table th {
+      background-color: var(--primary);
+      color: white;
+      font-weight: 600;
+    }
+
+    .leaderboard-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .rank {
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .progress {
+      font-family: monospace;
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    body.dark .no-data {
+      color: #aaa;
+    }
+
+    /* Loading state */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .error {
+      color: #dc3545;
+      text-align: center;
+      padding: 20px;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 10px;
+      }
+
+      .event-section {
+        padding: 16px;
+      }
+
+      .leaderboard-table th,
+      .leaderboard-table td {
+        padding: 8px 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="toolbar" role="banner" aria-label="Page toolbar">
+    <div>
+      <button id="backBtn" aria-label="Go back" title="Go back">←</button>
+      <span class="title" id="headerTitle">Event Leaderboards</span>
+    </div>
+    <div>
+      <button id="modeToggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">🌙</button>
+      <button id="menuBtn" aria-label="Open menu" title="Open menu">☰</button>
+    </div>
+  </header>
+
+  <div class="container" id="leaderboardContainer">
+    <!-- Event leaderboards will be generated here -->
+    <div class="loading">Loading leaderboards...</div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { getFirestore, collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAIFV7ynXUzA0p-CrmVOE2lFRgaf_9g_k4",
+      authDomain: "fyp-25-s2-09.firebaseapp.com",
+      projectId: "fyp-25-s2-09",
+      storageBucket: "fyp-25-s2-09.appspot.com",
+      messagingSenderId: "838641447649",
+      appId: "1:838641447649:web:6ddfb234b3d445f16dbda0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // UI Elements
+    const backBtn = document.getElementById('backBtn');
+    const modeToggle = document.getElementById('modeToggle');
+    const container = document.getElementById('leaderboardContainer');
+
+    // Event Handlers
+    backBtn.addEventListener('click', () => {
+      if (window.history.length > 1) {
+        history.back();
+      } else {
+        window.location.href = "Events.html";
+      }
+    });
+
+    modeToggle.addEventListener('click', () => {
+      const isDark = document.body.classList.toggle('dark');
+      modeToggle.textContent = isDark ? '☀️' : '🌙';
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+
+    // Check saved theme
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark');
+      modeToggle.textContent = '☀️';
+    }
+
+    // Format functions
+    function formatDate(iso) {
+      if (!iso) return '';
+      const [y, m, d] = iso.split('-');
+      return `${d}/${m}/${y}`;
+    }
+
+    function formatProgress(value, metric) {
+      switch (metric) {
+        case 'distance':
+          return `${value.toFixed(2)} km`;
+        case 'time':
+          const hours = Math.floor(value / 60);
+          const minutes = value % 60;
+          return `${hours}h ${minutes}m`;
+        case 'elevation':
+          return `${value.toFixed(0)}m`;
+        case 'steps':
+          return value.toLocaleString() + ' steps';
+        default:
+          return value.toString();
+      }
+    }
+
+    // Create leaderboard HTML
+    function createEventLeaderboard(event, participants) {
+      const section = document.createElement('div');
+      section.className = 'event-section';
+
+      const header = document.createElement('div');
+      header.className = 'event-header';
+      
+      header.innerHTML = `
+        <h2 class="event-title">${event.name}</h2>
+        <div class="event-info">
+          ${event.challengeType} | ${formatDate(event.startDate)} - ${formatDate(event.endDate)}
+        </div>
+        <div class="event-metrics">
+          Tracking: ${event.metrics.map(m => m.charAt(0).toUpperCase() + m.slice(1)).join(', ')}
+        </div>
+      `;
+
+      const table = document.createElement('table');
+      table.className = 'leaderboard-table';
+      
+      if (participants.length === 0) {
+        table.innerHTML = '<tr><td class="no-data">No participants yet</td></tr>';
+      } else {
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Participant</th>
+              <th>Progress</th>
+              <th>Last Updated</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${participants.map((p, index) => `
+              <tr>
+                <td class="rank">#${index + 1}</td>
+                <td>${p.userName}</td>
+                <td class="progress">${formatProgress(p.progress, event.metrics[0])}</td>
+                <td>${formatDate(p.lastUpdated)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        `;
+      }
+
+      section.appendChild(header);
+      section.appendChild(table);
+      return section;
+    }
+
+    // Main function to load and display leaderboards
+    async function loadLeaderboards() {
+      try {
+        // Get all events
+        const eventsSnapshot = await getDocs(collection(db, "events"));
+        const events = [];
+        eventsSnapshot.forEach(doc => {
+          events.push({ id: doc.id, ...doc.data() });
+        });
+
+        if (events.length === 0) {
+          container.innerHTML = '<div class="no-data">No events found</div>';
+          return;
+        }
+
+        // Clear container
+        container.innerHTML = '';
+
+        // Process each event
+        for (const event of events) {
+          try {
+            // Get participants for this event
+            const participantsQuery = query(
+              collection(db, "eventParticipants"),
+              where("eventId", "==", event.id),
+              orderBy("progress", "desc")
+            );
+            const participantsSnapshot = await getDocs(participantsQuery);
+            const participants = [];
+            participantsSnapshot.forEach(doc => {
+              participants.push(doc.data());
+            });
+
+            // Create and append leaderboard
+            const leaderboard = createEventLeaderboard(event, participants);
+            container.appendChild(leaderboard);
+          } catch (err) {
+            console.error(`Error loading participants for event ${event.id}:`, err);
+            const errorSection = document.createElement('div');
+            errorSection.className = 'error';
+            errorSection.textContent = `Failed to load leaderboard for ${event.name}`;
+            container.appendChild(errorSection);
+          }
+        }
+      } catch (err) {
+        console.error('Error loading events:', err);
+        container.innerHTML = '<div class="error">Failed to load leaderboards</div>';
+      }
+    }
+
+    // Check auth and load leaderboards
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        loadLeaderboards();
+      } else {
+        window.location.href = "Login.html";
+      }
+    });
+  </script>
+</body>
+</html>

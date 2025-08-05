@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Manage Services
+  </title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      padding: 20px;
+      margin: 0;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      overflow-x: hidden; /* prevent  scroll when menu open */
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 10px 16px;
+      margin: 10px 0;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #004999;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background-color: white;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #ccc;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    #servicesTable tbody tr {
+      transition: background-color 0.3s ease;
+    }
+    #servicesTable tbody tr:hover {
+      background-color: #f5f5f5;
+    }
+    body.dark #servicesTable tbody tr:hover {
+      background-color: #2a2a2a;
+    }
+    .edit, .delete {
+      margin: 0 5px;
+      padding: 5px 10px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-content {
+      background: white;
+      padding: 25px 30px;
+      border-radius: 12px;
+      width: 400px;
+      max-width: 95%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    label {
+      font-weight: bold;
+      margin-top: 10px;
+      display: block;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px 10px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 15px;
+      box-sizing: border-box;
+    }
+    .modal-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .modal-buttons button {
+      width: 100px;
+    }
+    /* Toolbar styles */
+    header.toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #0066cc;
+      padding: 8px 16px;
+      color: white;
+      border-radius: 5px;
+      user-select: none;
+      margin-bottom: 20px;
+    }
+    header.toolbar > div {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    header.toolbar button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      user-select: none;
+    }
+    #backBtn {
+      font-size: 24px;
+      padding: 0;
+      line-height: 1;
+    }
+    #modeToggle {
+      font-size: 20px;
+    }
+    #menuBtn {
+      font-size: 24px;
+    }
+    header.toolbar span.title {
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    /* Side Menu styles */
+    #sideMenuOverlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.4);
+      z-index: 1500;
+      transition: opacity 0.3s ease;
+    }
+    #sideMenuOverlay.active {
+      display: block;
+    }
+    #sideMenu {
+      position: fixed;
+      top: 0; 
+      right: -280px;  /* Right side menu */
+      left: auto;
+      width: 280px;
+      height: 100vh;
+      background-color: #004a99;
+      color: white;
+      padding: 20px;
+      box-sizing: border-box;
+      box-shadow: -2px 0 8px rgba(0,0,0,0.3); /* shadow on left side */
+      transition: right 0.3s ease;
+      z-index: 1600;
+      display: flex;
+      flex-direction: column;
+    }
+    #sideMenu.active {
+      right: 0;
+      left: auto;
+    }
+    #sideMenu h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-weight: 700;
+      font-size: 22px;
+    }
+    #sideMenu nav a {
+      color: white;
+      text-decoration: none;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      cursor: pointer;
+      font-size: 16px;
+      display: block;
+    }
+    #sideMenu nav a:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    #sideMenu button#closeMenuBtn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      align-self: flex-end;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    /* Dark mode styles */
+    body.dark {
+      background-color: #121212;
+      color: #eee;
+    }
+    body.dark table {
+      background: #222;
+      color: #eee;
+    }
+    body.dark th {
+      background: #333;
+    }
+    body.dark td {
+      border-color: #444;
+    }
+    body.dark input, body.dark select {
+      background: #333;
+      color: #eee;
+      border-color: #555;
+    }
+    body.dark button[type="submit"],
+    body.dark #cancelBtn {
+      filter: brightness(110%);
+    }
+
+    /* Responsive for mobile */
+    @media (max-width: 480px) {
+      .modal-content {
+        width: 90%;
+        padding: 20px;
+      }
+      button {
+        font-size: 14px;
+        padding: 8px 12px;
+      }
+      header.toolbar {
+        padding: 6px 12px;
+      }
+      header.toolbar button#backBtn,
+      header.toolbar button#menuBtn {
+        font-size: 20px;
+      }
+      header.toolbar button#modeToggle {
+        font-size: 18px;
+      }
+      header.toolbar span.title {
+        font-size: 16px;
+      }
+      #sideMenu {
+        width: 220px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="toolbar" role="banner" aria-label="Page toolbar">
+    <div>
+      <button id="backBtn" aria-label="Go back" title="Go back">←</button>
+      <span class="title">Manage Services</span>
+    </div>
+    <div>
+      <button id="modeToggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">🌙</button>
+      <button id="menuBtn" aria-label="Open menu" title="Open menu">☰</button>
+    </div>
+  </header>
+
+  <button id="createBtn">Create Service</button>
+
+  <table id="servicesTable" aria-label="Services Table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Duration</th>
+        <th>Category</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="modal" id="serviceModal" role="dialog" aria-modal="true" aria-labelledby="formTitle">
+    <div class="modal-content">
+      <h3 id="formTitle">New Service</h3>
+      <form id="serviceForm" novalidate>
+        <input type="hidden" id="serviceId" />
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" required />
+
+        <label for="description">Description</label>
+        <input type="text" id="description" name="description" required />
+
+        <label for="duration">Program Duration</label>
+        <select id="duration" name="duration" required>
+          <option value="">Select duration</option>
+          <option value="1 week">1 week</option>
+          <option value="2 weeks">2 weeks</option>
+          <option value="3 weeks">3 weeks</option>
+          <option value="4 weeks">4 weeks</option>
+          <option value="6 weeks">6 weeks</option>
+          <option value="8 weeks">8 weeks</option>
+        </select>
+
+        <label for="category">Category</label>
+        <select id="category" name="category" required>
+          <option value="">Select category</option>
+          <option value="Gym - Flexibility and Mobility (Yoga)">Gym - Flexibility and Mobility (Yoga)</option>
+          <option value="Crossfit - HIIT">Crossfit - HIIT</option>
+           <option value="Crossfit">Crossfit - Metabolic Conditioning</option>
+          <option value="Dance - Zumba">Dance - Zumba</option>
+          <option value="Dance - Body Combat">Dance - Body Combat</option>
+          <option value="Physiotherapy">Physiotherapy</option>
+          <option value="Martial Arts">Martial Arts</option>
+        </select>
+
+        <div class="modal-buttons">
+          <button type="submit">Save</button>
+          <button type="button" id="cancelBtn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Side menu overlay -->
+  <div id="sideMenuOverlay" tabindex="-1"></div>
+
+  <!-- Side menu -->
+  <aside id="sideMenu" aria-label="Main menu" role="navigation">
+    <button id="closeMenuBtn" aria-label="Close menu" title="Close menu">×</button>
+    <h2>Menu</h2>
+    <nav>
+      <a href="#">Profile</a>
+      <a href="#">Settings</a>
+      <a href="#" id="resetPasswordLink">Reset Password</a>
+      <a href="#" id="logoutLink">Logout</a>
+    </nav>
+  </aside>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      getDocs,
+      doc,
+      updateDoc,
+      deleteDoc,
+      query,
+      where
+    } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAIFV7ynXUzA0p-CrmVOE2lFRgaf_9g_k4",
+      authDomain: "fyp-25-s2-09.firebaseapp.com",
+      projectId: "fyp-25-s2-09",
+      storageBucket: "fyp-25-s2-09.appspot.com",
+      messagingSenderId: "838641447649",
+      appId: "1:838641447649:web:6ddfb234b3d445f16dbda0",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
+
+    const createBtn = document.getElementById("createBtn");
+    const serviceModal = document.getElementById("serviceModal");
+    const serviceForm = document.getElementById("serviceForm");
+    const servicesTable = document.querySelector("#servicesTable tbody");
+    const serviceId = document.getElementById("serviceId");
+    const nameInput = document.getElementById("name");
+    const descInput = document.getElementById("description");
+    const durationInput = document.getElementById("duration");
+    const categoryInput = document.getElementById("category");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const formTitle = document.getElementById("formTitle");
+
+    const backBtn = document.getElementById("backBtn");
+    const modeToggle = document.getElementById("modeToggle");
+    const menuBtn = document.getElementById("menuBtn");
+
+    // Side menu elements
+    const sideMenu = document.getElementById("sideMenu");
+    const sideMenuOverlay = document.getElementById("sideMenuOverlay");
+    const closeMenuBtn = document.getElementById("closeMenuBtn");
+    const logoutLink = document.getElementById("logoutLink");
+    const resetPasswordLink = document.getElementById("resetPasswordLink");
+
+    let currentUser = null;
+
+    function openModal() {
+      serviceModal.classList.add("active");
+      nameInput.focus();
+    }
+
+    function closeModal() {
+      serviceForm.reset();
+      formTitle.textContent = "New Service";
+      serviceId.value = "";
+      serviceModal.classList.remove("active");
+    }
+
+    createBtn.onclick = () => {
+      openModal();
+    };
+
+    cancelBtn.addEventListener("click", closeModal);
+
+    serviceForm.onsubmit = async (e) => {
+      e.preventDefault();
+
+      const id = serviceId.value;
+      const name = nameInput.value.trim();
+      const description = descInput.value.trim();
+      const duration = durationInput.value;
+      const category = categoryInput.value;
+
+      if (!name || !description || !duration || !category) {
+        alert("Please fill in all fields correctly.");
+        return;
+      }
+
+      // Add createdBy field for new services
+      let data = { name, description, duration, category };
+
+      try {
+        if (!currentUser) {
+          alert("You must be logged in.");
+          return;
+        }
+
+        if (id) {
+          await updateDoc(doc(db, "services", id), data);
+          alert("Service updated successfully.");
+        } else {
+          // Add createdBy field and timestamp for new service
+          data.createdBy = currentUser.uid;
+          data.createdAt = new Date().toISOString();
+          await addDoc(collection(db, "services"), data);
+          alert("Service created successfully.");
+        }
+        closeModal();
+        await loadServices();
+      } catch (error) {
+        alert("Error saving service: " + error.message);
+        console.error(error);
+      }
+    };
+
+    async function loadServices() {
+      // Clear existing content
+      servicesTable.innerHTML = "";
+      
+      if (!currentUser) {
+        servicesTable.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Please log in to view services.</td></tr>`;
+        return;
+      }
+
+      try {
+        // Get only services created by the current user
+        const q = query(
+          collection(db, "services"), 
+          where("createdBy", "==", currentUser.uid)
+        );
+        
+        const querySnapshot = await getDocs(q);
+        
+        if (querySnapshot.empty) {
+          servicesTable.innerHTML = `<tr><td colspan="5" style="text-align:center;">No services found.</td></tr>`;
+          return;
+        }
+
+        // Sort services by creation time if available
+        const services = [];
+        querySnapshot.forEach((doc) => {
+          services.push({ id: doc.id, ...doc.data() });
+        });
+        // Create table rows for each service
+        services.forEach((service) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${service.name || ''}</td>
+            <td>${service.description || ''}</td>
+            <td>${service.duration || ''}</td>
+            <td>${service.category || ''}</td>
+            <td>
+              <button class="edit" data-id="${service.id}">Edit</button>
+              <button class="delete" data-id="${service.id}">Delete</button>
+            </td>
+          `;
+
+          tr.querySelector(".edit").onclick = () => editService(service.id, service);
+          tr.querySelector(".delete").onclick = () => deleteService(service.id);
+
+          servicesTable.appendChild(tr);
+        });
+      } catch (error) {
+        alert("Error loading services: " + error.message);
+        console.error(error);
+      }
+    }
+
+    function editService(id, service) {
+      serviceId.value = id;
+      nameInput.value = service.name || '';
+      descInput.value = service.description || '';
+      durationInput.value = service.duration || '';
+      categoryInput.value = service.category || '';
+      formTitle.textContent = "Edit Service";
+      openModal();
+    }
+
+    async function deleteService(id) {
+      if (confirm("Are you sure you want to delete this service?")) {
+        try {
+          await deleteDoc(doc(db, "services", id));
+          await loadServices();
+        } catch (error) {
+          alert("Error deleting service: " + error.message);
+          console.error(error);
+        }
+      }
+    }
+
+    // Back button: go back or fallback to homepage
+    backBtn.addEventListener("click", () => {
+      if (window.history.length > 1) {
+        history.back();
+      } else {
+        window.location.href = "/";
+      }
+    });
+
+    // Dark mode toggle
+    modeToggle.addEventListener("click", () => {
+      const isDark = document.body.classList.toggle("dark");
+      modeToggle.textContent = isDark ? "☀️" : "🌙";
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+    });
+
+    // Load saved theme
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark");
+      modeToggle.textContent = "☀️";
+    }
+
+    // Side menu open/close functions
+    function openMenu() {
+      sideMenu.classList.add("active");
+      sideMenuOverlay.classList.add("active");
+    }
+    function closeMenu() {
+      sideMenu.classList.remove("active");
+      sideMenuOverlay.classList.remove("active");
+    }
+
+    menuBtn.addEventListener("click", openMenu);
+    closeMenuBtn.addEventListener("click", closeMenu);
+    sideMenuOverlay.addEventListener("click", closeMenu);
+
+   logoutLink.addEventListener("click", async (e) => {
+  e.preventDefault();
+  try {
+    await signOut(auth);
+    alert("Logged out successfully.");
+    closeMenu();
+    window.location.href = "login.html"; // Redirect after logout
+  } catch (error) {
+    alert("Logout failed: " + error.message);
+    console.error(error);
+  }
+});
+
+
+    // Reset password link - sends reset email to current user's email
+    resetPasswordLink.addEventListener("click", async (e) => {
+      e.preventDefault();
+      if (!currentUser || !currentUser.email) {
+        alert("No logged-in user found to reset password.");
+        return;
+      }
+      try {
+        await sendPasswordResetEmail(auth, currentUser.email);
+        alert(`Password reset email sent to ${currentUser.email}`);
+        closeMenu();
+      } catch (error) {
+        alert("Failed to send password reset email: " + error.message);
+        console.error(error);
+      }
+    });
+
+    // Listen for auth state changes
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      if (user) {
+        loadServices();
+      } else {
+        servicesTable.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Please log in to view services.</td></tr>`;
+      }
+    });
+  </script>
+</body>
+</html>

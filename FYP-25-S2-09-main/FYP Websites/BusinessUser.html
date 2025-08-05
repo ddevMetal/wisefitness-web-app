@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Business User Dashboard - Wise Fitness</title>
+  <style>
+    :root {
+      --primary: #007bff;
+      --light-bg: #f9f9f9;
+      --dark-bg: #1f1f1f;
+      --card-bg: #ffffff;
+      --card-dark: #2c2c2c;
+      --text-light: #111;
+      --text-dark: #f1f1f1;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --radius: 14px;
+      --transition: 0.3s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--light-bg);
+      color: var(--text-light);
+      transition: var(--transition);
+      overflow-x: hidden;
+    }
+
+    body.dark {
+      background: var(--dark-bg);
+      color: var(--text-dark);
+    }
+
+
+    /* Toolbar styles (from Posts.html/Events.html) */
+    header.toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #0066cc;
+      padding: 8px 16px;
+      color: white;
+      border-radius: 5px;
+      user-select: none;
+      margin-bottom: 20px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      height: 56px;
+    }
+    header.toolbar > div {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    header.toolbar button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      user-select: none;
+    }
+    #backBtn {
+      font-size: 24px;
+      padding: 0;
+      line-height: 1;
+    }
+    #modeToggle {
+      font-size: 20px;
+    }
+    #menuBtn {
+      font-size: 24px;
+    }
+    header.toolbar span.title {
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    /* Side Menu styles (from Posts.html/Events.html) */
+    #sideMenuOverlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.4);
+      z-index: 1500;
+      transition: opacity 0.3s ease;
+    }
+    #sideMenuOverlay.active {
+      display: block;
+    }
+    #sideMenu {
+      position: fixed;
+      top: 0;
+      right: -280px;
+      left: auto;
+      width: 280px;
+      height: 100vh;
+      background-color: #004a99;
+      color: white;
+      padding: 20px;
+      box-sizing: border-box;
+      box-shadow: -2px 0 8px rgba(0,0,0,0.3);
+      transition: right 0.3s ease;
+      z-index: 1600;
+      display: flex;
+      flex-direction: column;
+    }
+    #sideMenu.active {
+      right: 0;
+      left: auto;
+    }
+    #sideMenu h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-weight: 700;
+      font-size: 22px;
+    }
+    #sideMenu nav a {
+      color: white;
+      text-decoration: none;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      cursor: pointer;
+      font-size: 16px;
+      display: block;
+    }
+    #sideMenu nav a:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    #sideMenu button#closeMenuBtn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      align-self: flex-end;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    /* Responsive for mobile (from Posts.html/Events.html) */
+    @media (max-width: 480px) {
+      header.toolbar {
+        padding: 6px 12px;
+      }
+      header.toolbar button#backBtn,
+      header.toolbar button#menuBtn {
+        font-size: 20px;
+      }
+      header.toolbar button#modeToggle {
+        font-size: 18px;
+      }
+      header.toolbar span.title {
+        font-size: 16px;
+      }
+      #sideMenu {
+        width: 220px;
+      }
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 20px 40px;
+      min-height: 100vh;
+      transition: padding-right 0.3s ease;
+      padding-right: 20px;
+    }
+
+    .sidebar-active .container {
+      padding-right: 280px;
+    }
+
+    .header {
+      background: var(--primary);
+      color: white;
+      padding: 16px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: var(--radius) var(--radius) 0 0;
+      box-shadow: var(--shadow);
+      position: fixed;
+      top: 0;
+      right: 0;
+      left: 0;
+      height: 56px;
+      z-index: 20;
+      transition: right 0.3s ease, width 0.3s ease;
+      user-select: none;
+    }
+
+    .sidebar-active .header {
+      right: 260px;
+      width: calc(100% - 260px);
+    }
+
+    .header span {
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .toggle-mode {
+      cursor: pointer;
+      font-size: 22px;
+      background: none;
+      border: none;
+      color: white;
+      user-select: none;
+      margin-right: 16px;
+    }
+
+    .menu-icon {
+      font-size: 26px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .content {
+      margin-top: 80px;
+    }
+
+    .widget-container {
+      margin-top: 20px;
+    }
+
+    .widget-container h3 {
+      color: var(--primary);
+      margin-bottom: 20px;
+      font-weight: 700;
+      border-bottom: 3px solid var(--primary);
+      padding-bottom: 6px;
+      max-width: max-content;
+    }
+
+    .widgets {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 28px;
+    }
+
+    .widgets button {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 36px 24px;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-light);
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      user-select: none;
+      text-align: center;
+    }
+
+    body.dark .widgets button {
+      background: var(--card-dark);
+      color: var(--text-dark);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    }
+
+    .widgets button:hover {
+      background: var(--primary);
+      color: white;
+      border-color: white;
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0, 123, 255, 0.6);
+    }
+
+    .widgets button .icon {
+      font-size: 48px;
+      user-select: none;
+    }
+
+    /* Survey Banner Styles */
+    .survey-banner {
+      background: linear-gradient(135deg, #ff6b35, #f7931e);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .survey-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .survey-banner-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 1;
+    }
+
+    .survey-banner-text h3 {
+      color: white;
+      margin: 0 0 8px 0;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .survey-banner-text p {
+      color: rgba(255,255,255,0.9);
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .survey-btn {
+      background: white;
+      color: #ff6b35;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 25px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      margin-left: 20px;
+    }
+
+    .survey-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+
+    .survey-dismiss {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px;
+      margin-left: 12px;
+      opacity: 0.7;
+      transition: opacity 0.3s ease;
+    }
+
+    .survey-dismiss:hover {
+      opacity: 1;
+    }
+
+    /* Survey Modal Styles - Light Theme */
+    .survey-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 2000;
+      backdrop-filter: blur(4px);
+    }
+
+    .survey-modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .survey-modal-content {
+      background: var(--card-bg);
+      color: var(--text-light);
+      border-radius: var(--radius);
+      width: 90%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      animation: slideIn 0.3s ease;
+      box-shadow: var(--shadow);
+    }
+
+    body.dark .survey-modal-content {
+      background: var(--card-dark);
+      color: var(--text-dark);
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(-30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .survey-header {
+      background: linear-gradient(135deg, #ff6b35, #f7931e);
+      padding: 24px;
+      border-radius: var(--radius) var(--radius) 0 0;
+      position: relative;
+      color: white;
+    }
+
+    .survey-header h2 {
+      margin: 0 0 8px 0;
+      font-size: 22px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .survey-header p {
+      margin: 0;
+      opacity: 0.9;
+      font-size: 14px;
+      color: white;
+    }
+
+    .survey-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 4px;
+      opacity: 0.8;
+      transition: opacity 0.3s ease;
+    }
+
+    .survey-close:hover {
+      opacity: 1;
+    }
+
+    .survey-form {
+      padding: 24px;
+    }
+
+    .survey-field {
+      margin-bottom: 24px;
+    }
+
+    .survey-field label {
+      display: block;
+      margin-bottom: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-light);
+    }
+
+    body.dark .survey-field label {
+      color: var(--text-dark);
+    }
+
+    .required {
+      color: #ff6b35;
+    }
+
+    .optional {
+      color: #888;
+      font-weight: normal;
+    }
+
+    .role-selection {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .role-btn {
+      flex: 1;
+      min-width: 120px;
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      color: var(--text-light);
+      padding: 16px 12px;
+      border-radius: 8px;
+      cursor: not-allowed;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0.6;
+    }
+
+    body.dark .role-btn {
+      background: #3a3a3a;
+      border-color: #555;
+      color: var(--text-dark);
+    }
+
+    .role-btn.selected {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+      opacity: 1;
+      cursor: default;
+    }
+
+    .role-icon {
+      font-size: 20px;
+    }
+
+    .role-disabled-text {
+      font-size: 12px;
+      color: #888;
+      text-align: center;
+      margin-top: 8px;
+      font-style: italic;
+    }
+
+    .rating-container {
+      text-align: center;
+    }
+
+    .stars {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .star {
+      color: #ddd;
+      cursor: pointer;
+      transition: color 0.2s ease;
+      margin: 0 2px;
+    }
+
+    .star:hover,
+    .star.active {
+      color: #ffc107;
+    }
+
+    body.dark .star {
+      color: #555;
+    }
+
+    .rating-text {
+      color: #888;
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .survey-field textarea {
+      width: 100%;
+      background: var(--card-bg);
+      border: 2px solid #e9ecef;
+      color: var(--text-light);
+      padding: 12px;
+      border-radius: 8px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 100px;
+      transition: var(--transition);
+    }
+
+    body.dark .survey-field textarea {
+      background: #3a3a3a;
+      border-color: #555;
+      color: var(--text-dark);
+    }
+
+    .survey-field textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .survey-field textarea::placeholder {
+      color: #888;
+    }
+
+    .contact-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .contact-row input {
+      flex: 1;
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      color: var(--text-light);
+      padding: 12px;
+      border-radius: 8px;
+      font-family: inherit;
+      transition: var(--transition);
+    }
+
+    body.dark .contact-row input {
+      background: #3a3a3a;
+      border-color: #555;
+      color: var(--text-dark);
+    }
+
+    .contact-row input:read-only {
+      background: #f1f3f4;
+      color: #6c757d;
+      cursor: not-allowed;
+    }
+
+    body.dark .contact-row input:read-only {
+      background: #2a2a2a;
+      color: #aaa;
+    }
+
+    .survey-submit {
+      width: 100%;
+      background: linear-gradient(135deg, #ff6b35, #f7931e);
+      border: none;
+      color: white;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .survey-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 107, 53, 0.4);
+    }
+
+    .survey-banner {
+      display: none; /* Hidden by default to prevent flash */
+    }
+    
+    .survey-banner.show {
+      display: block; /* Show when needed */
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        padding-right: 20px !important;
+      }
+
+      .sidebar {
+        width: 260px;
+        height: 100vh;
+      }
+
+      .sidebar.active {
+        transform: translateX(0);
+      }
+
+      .header,
+      .sidebar-active .header {
+        right: 0 !important;
+        width: 100% !important;
+      }
+
+      .widgets {
+        grid-template-columns: 1fr !important;
+      }
+
+      .survey-banner-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+      }
+
+      .survey-btn {
+        margin-left: 0;
+      }
+
+      .role-selection {
+        flex-direction: column;
+      }
+
+      .contact-row {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="toolbar" role="banner" aria-label="Page toolbar">
+    <div>
+      <span class="title" id="headerTitle">Business User Dashboard</span>
+    </div>
+    <div>
+      <button id="modeToggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode">🌙</button>
+      <button id="menuBtn" aria-label="Open menu" title="Open menu">☰</button>
+    </div>
+  </header>
+  <div id="sideMenuOverlay" tabindex="-1"></div>
+  <aside id="sideMenu" aria-label="Main menu" role="navigation">
+    <button id="closeMenuBtn" aria-label="Close menu" title="Close menu">×</button>
+    <h2>Menu</h2>
+    <nav>
+      <a href="#" id="profileLink">Profile</a>
+      <a href="#" id="settingsLink">Settings</a>
+      <a href="#" id="resetPasswordLink">Reset Password</a>
+      <a href="#" id="logoutLink">Logout</a>
+    </nav>
+  </aside>
+
+  <!-- Survey Modal -->
+  <div id="surveyModal" class="survey-modal">
+    <div class="survey-modal-content">
+      <div class="survey-header">
+        <h2>Share Your Experience</h2>
+        <p>Help us improve by sharing how you feel about the Wise Fitness platform!</p>
+        <button class="survey-close" onclick="closeSurvey()">×</button>
+      </div>
+      
+      <form id="surveyForm" class="survey-form">
+        <div class="survey-field">
+          <label>I am a <span class="required">*</span></label>
+          <div class="role-selection">
+            <button type="button" class="role-btn" data-role="free">
+              <div class="role-icon">📱</div>
+              <span>Free User</span>
+            </button>
+            <button type="button" class="role-btn" data-role="premium">
+              <div class="role-icon">⭐</div>
+              <span>Premium User</span>
+            </button>
+            <button type="button" class="role-btn selected" data-role="business">
+              <div class="role-icon">🏢</div>
+              <span>Business User</span>
+            </button>
+          </div>
+          <p class="role-disabled-text">Your role is automatically detected and cannot be changed</p>
+        </div>
+
+        <div class="survey-field">
+          <label>Rate your experience <span class="required">*</span></label>
+          <div class="rating-container">
+            <div class="stars">
+              <span class="star" data-rating="1">★</span>
+              <span class="star" data-rating="2">★</span>
+              <span class="star" data-rating="3">★</span>
+              <span class="star" data-rating="4">★</span>
+              <span class="star" data-rating="5">★</span>
+            </div>
+            <p class="rating-text">Click to rate your experience</p>
+          </div>
+        </div>
+
+        <div class="survey-field">
+          <label>Your Feedback <span class="required">*</span></label>
+          <textarea id="feedbackText" placeholder="Tell us what you loved or what could be better. Your honest feedback helps us create a better experience for everyone..." rows="4" required></textarea>
+        </div>
+
+        <div class="survey-field">
+          <label>Contact Information <span class="optional">(Auto-filled from your account)</span></label>
+          <div class="contact-row">
+            <input type="text" id="contactName" placeholder="Your Name" readonly>
+            <input type="email" id="contactEmail" placeholder="Your Email" readonly>
+          </div>
+          <p class="role-disabled-text">Contact information is automatically filled from your account and cannot be edited</p>
+        </div>
+
+        <button type="submit" class="survey-submit">Share Feedback</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div class="content">
+      <h2>Welcome to your dashboard</h2>
+      <p>Select one of the sections below to manage your business.</p>
+
+      <!-- Survey Notification Banner -->
+      <div id="surveyBanner" class="survey-banner">
+        <div class="survey-banner-content">
+          <div class="survey-banner-text">
+            <h3>📝 Share Your Experience</h3>
+            <p>Help us improve by sharing how you feel about the Wise Fitness platform!</p>
+          </div>
+          <button onclick="openSurvey()" class="survey-btn">Take Survey</button>
+          <button onclick="dismissSurvey()" class="survey-dismiss" title="Dismiss">×</button>
+        </div>
+      </div>
+
+      <div class="widget-container">
+        <h3>Main Sections</h3>
+        <div class="widgets">
+          <button onclick="goService()">
+            <div class="icon">🛠️</div>
+            Service
+          </button>
+          <button onclick="goPost()">
+            <div class="icon">📝</div>
+            Post
+          </button>
+          <button onclick="goEvent()">
+            <div class="icon">📅</div>
+            Event
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAIFV7ynXUzA0p-CrmVOE2lFRgaf_9g_k4",
+      authDomain: "fyp-25-s2-09.firebaseapp.com",
+      projectId: "fyp-25-s2-09",
+      storageBucket: "fyp-25-s2-09.appspot.com",
+      messagingSenderId: "838641447649",
+      appId: "1:838641447649:web:6ddfb234b3d445f16dbda0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+
+    const menuBtn = document.getElementById('menuBtn');
+    const modeToggle = document.getElementById('modeToggle');
+    const sideMenu = document.getElementById('sideMenu');
+    const sideMenuOverlay = document.getElementById('sideMenuOverlay');
+    const closeMenuBtn = document.getElementById('closeMenuBtn');
+    const logoutLink = document.getElementById('logoutLink');
+    const resetPasswordLink = document.getElementById('resetPasswordLink');
+    const profileLink = document.getElementById('profileLink');
+    const settingsLink = document.getElementById('settingsLink');
+    const headerTitle = document.getElementById('headerTitle');
+
+    // Side menu open/close functions
+    function openMenu() {
+      sideMenu.classList.add("active");
+      sideMenuOverlay.classList.add("active");
+    }
+    function closeMenu() {
+      sideMenu.classList.remove("active");
+      sideMenuOverlay.classList.remove("active");
+    }
+    menuBtn.addEventListener("click", openMenu);
+    closeMenuBtn.addEventListener("click", closeMenu);
+    sideMenuOverlay.addEventListener("click", closeMenu);
+
+    // Dark mode toggle
+    modeToggle.addEventListener("click", () => {
+      const isDark = document.body.classList.toggle("dark");
+      modeToggle.textContent = isDark ? "☀️" : "🌙";
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+    });
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark");
+      modeToggle.textContent = "☀️";
+    }
+
+    // Side menu navigation links
+    profileLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      goProfile();
+      closeMenu();
+    });
+    settingsLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      goSettings();
+      closeMenu();
+    });
+    logoutLink.addEventListener("click", async (e) => {
+      e.preventDefault();
+      await logout();
+      closeMenu();
+    });
+    resetPasswordLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      resetPassword();
+      closeMenu();
+    });
+
+    window.logout = async () => {
+      try {
+        await signOut(auth);
+        window.location.href = "Login.html";
+      } catch (error) {
+        console.error("Logout error:", error);
+        alert("Failed to logout: " + error.message);
+      }
+    };
+
+    // Password reset function
+    window.sendPasswordReset = async function () {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("No logged in user.");
+        return;
+      }
+    }
+
+    window.goProfile = () => window.location.href = "BusinessUserProfile.html";
+    window.goSettings = () => window.location.href = "BusinessUserSettings.html";
+
+    window.resetPassword = () => {
+      const user = auth.currentUser;
+      if (!user || !user.email) {
+        alert("No user logged in.");
+        return;
+      }
+      const confirmReset = confirm(`Send password reset email to ${user.email}?`);
+      if (confirmReset) {
+        sendPasswordResetEmail(auth, user.email)
+          .then(() => alert("Password reset email sent!"))
+          .catch(err => alert("Error sending reset email: " + err.message));
+      }
+    };
+
+    // Widget navigation
+    window.goService = () => window.location.href = "Services.html";
+    window.goPost = () => window.location.href = "posts.html";
+    window.goEvent = () => window.location.href = "events.html";
+
+    // Survey functionality
+    let selectedRole = 'business'; // Fixed for business users
+    let selectedRating = 0;
+
+    // Check if survey was already completed
+    async function checkSurveyStatus() {
+      const user = auth.currentUser;
+      console.log('=== SURVEY STATUS CHECK START ===');
+      console.log('Current user:', user ? user.uid : 'No user');
+      
+      if (!user) {
+        console.log('No user logged in');
+        return;
+      }
+
+      // Check if user has dismissed the survey
+      const surveyDismissed = localStorage.getItem(`survey_dismissed_${user.uid}`);
+      if (surveyDismissed) {
+        console.log('Survey was dismissed - keeping banner hidden');
+        document.getElementById('surveyBanner').classList.remove('show');
+        return;
+      }
+
+      try {
+        console.log('Checking testimonial document for user:', user.uid);
+        
+        // Check if testimonial document exists
+        const testimonialRef = doc(db, "businessUserTestimonial", user.uid);
+        console.log('Testimonial reference created:', testimonialRef.path);
+        
+        const testimonialSnap = await getDoc(testimonialRef);
+        console.log('Document snapshot retrieved, exists:', testimonialSnap.exists());
+        
+        if (testimonialSnap.exists()) {
+          const testimonialData = testimonialSnap.data();
+          console.log('Testimonial data:', testimonialData);
+          
+          if (testimonialData.isCompleted) {
+            console.log('Survey completed - hiding banner');
+            document.getElementById('surveyBanner').classList.remove('show');
+          } else {
+            console.log('Survey not completed - showing banner');
+            document.getElementById('surveyBanner').classList.add('show');
+          }
+        } else {
+          console.log('No testimonial document found - creating default one');
+          try {
+            await createDefaultTestimonialDocument(user.uid);
+            console.log('Default document created successfully');
+            document.getElementById('surveyBanner').classList.add('show');
+            console.log('Banner shown for new user');
+          } catch (createError) {
+            console.error('Failed to create default document:', createError);
+            alert('Error: Could not create testimonial record. Details: ' + createError.message);
+          }
+        }
+      } catch (error) {
+        console.error('Error in checkSurveyStatus:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        
+        // Show detailed error to user
+        alert('Survey check failed: ' + error.message + '\nError code: ' + (error.code || 'Unknown'));
+        
+        // Fallback to localStorage check
+        const surveyCompleted = localStorage.getItem(`survey_completed_${user.uid}`);
+        if (surveyCompleted) {
+          document.getElementById('surveyBanner').classList.remove('show');
+        } else {
+          document.getElementById('surveyBanner').classList.add('show');
+        }
+      }
+      console.log('=== SURVEY STATUS CHECK END ===');
+    }
+
+    // Create default testimonial document
+    async function createDefaultTestimonialDocument(userId) {
+      console.log('=== CREATE DEFAULT TESTIMONIAL START ===');
+      console.log('Creating for user ID:', userId);
+      
+      try {
+        // Verify we have database access
+        console.log('Database instance:', db);
+        
+        const testimonialRef = doc(db, "businessUserTestimonial", userId);
+        console.log('Document reference path:', testimonialRef.path);
+        console.log('Document reference ID:', testimonialRef.id);
+        
+        const defaultTestimonial = {
+          userId: userId,
+          rating: 0,
+          feedback: "",
+          isCompleted: false,
+          submittedAt: null,
+          userType: "business"
+        };
+        
+        console.log('Default testimonial object:', defaultTestimonial);
+        console.log('Attempting to write to Firestore...');
+        
+        await setDoc(testimonialRef, defaultTestimonial);
+        
+        console.log('✅ Default testimonial document created successfully');
+        
+        // Verify the document was created by reading it back
+        const verifySnap = await getDoc(testimonialRef);
+        console.log('Verification - document exists:', verifySnap.exists());
+        if (verifySnap.exists()) {
+          console.log('Verification - document data:', verifySnap.data());
+        }
+        
+      } catch (error) {
+        console.error('❌ Error creating default testimonial document:');
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        console.error('Full error object:', error);
+        
+        // Provide detailed error information
+        let errorDetails = `Failed to create testimonial document:\n`;
+        errorDetails += `Code: ${error.code || 'Unknown'}\n`;
+        errorDetails += `Message: ${error.message}\n`;
+        
+        if (error.code === 'permission-denied') {
+          errorDetails += `\nThis is likely a Firestore security rules issue.\n`;
+          errorDetails += `Check your Firestore security rules to ensure write access to businessUserTestimonial collection.`;
+        }
+        
+        throw new Error(errorDetails);
+      }
+      console.log('=== CREATE DEFAULT TESTIMONIAL END ===');
+    }
+
+    // Survey modal functions
+    window.openSurvey = () => {
+      document.getElementById('surveyModal').classList.add('active');
+      // Pre-fill user info from Firebase
+      loadUserInfoForSurvey();
+    };
+
+    window.closeSurvey = () => {
+      document.getElementById('surveyModal').classList.remove('active');
+    };
+
+    window.dismissSurvey = () => {
+      const user = auth.currentUser;
+      if (user) {
+        localStorage.setItem(`survey_dismissed_${user.uid}`, 'true');
+        document.getElementById('surveyBanner').classList.remove('show');
+      }
+    };
+
+    // Load user information for survey
+    async function loadUserInfoForSurvey() {
+      const user = auth.currentUser;
+      if (user) {
+        // Set email
+        document.getElementById('contactEmail').value = user.email || '';
+        
+        try {
+          // Try to get business name from Firestore
+          const docRef = doc(db, "businessUsers", user.uid);
+          const docSnap = await getDoc(docRef);
+          
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            const businessName = data.businessName || data.name || user.displayName || '';
+            document.getElementById('contactName').value = businessName;
+          } else {
+            // Fallback to display name or empty
+            document.getElementById('contactName').value = user.displayName || '';
+          }
+        } catch (error) {
+          console.error('Error loading user data for survey:', error);
+          document.getElementById('contactName').value = user.displayName || '';
+        }
+      }
+    }
+
+    // Role selection
+    document.addEventListener('DOMContentLoaded', () => {
+      // Role buttons are disabled - no click handlers needed
+      // Business User role is pre-selected and cannot be changed
+      
+      // Star rating
+      const stars = document.querySelectorAll('.star');
+      const ratingText = document.querySelector('.rating-text');
+      
+      stars.forEach((star, index) => {
+        star.addEventListener('click', () => {
+          selectedRating = index + 1;
+          updateStars();
+          updateRatingText();
+        });
+
+        star.addEventListener('mouseenter', () => {
+          highlightStars(index + 1);
+        });
+      });
+
+      document.querySelector('.stars').addEventListener('mouseleave', () => {
+        updateStars();
+      });
+
+      function highlightStars(rating) {
+        stars.forEach((star, index) => {
+          star.classList.toggle('active', index < rating);
+        });
+      }
+
+      function updateStars() {
+        stars.forEach((star, index) => {
+          star.classList.toggle('active', index < selectedRating);
+        });
+      }
+
+      function updateRatingText() {
+        const texts = [
+          'Click to rate your experience',
+          'Poor - Needs significant improvement',
+          'Fair - Could be better',
+          'Good - Meets expectations',
+          'Very Good - Exceeds expectations',
+          'Excellent - Outstanding experience'
+        ];
+        ratingText.textContent = texts[selectedRating];
+      }
+
+      // Survey form submission
+      document.getElementById('surveyForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (selectedRating === 0) {
+          alert('Please rate your experience before submitting.');
+          return;
+        }
+
+        const feedback = document.getElementById('feedbackText').value;
+        if (!feedback.trim()) {
+          alert('Please provide your feedback before submitting.');
+          return;
+        }
+
+        const user = auth.currentUser;
+        if (!user) {
+          alert('Please log in to submit survey.');
+          return;
+        }
+
+        try {
+          // Prepare survey data to save to Firestore
+          const surveyData = {
+            userId: user.uid,
+            rating: selectedRating,
+            feedback: feedback.trim(),
+            submittedAt: serverTimestamp(),
+            isCompleted: true,
+            userType: 'business'
+          };
+
+          console.log('Submitting survey data to Firestore:', surveyData);
+          
+          // Save to Firestore businessUserTestimonial collection
+          const testimonialRef = doc(db, "businessUserTestimonial", user.uid);
+          await setDoc(testimonialRef, surveyData, { merge: true });
+          
+          console.log('Survey data successfully saved to Firestore');
+          
+          // Hide banner and close modal
+          document.getElementById('surveyBanner').classList.remove('show');
+          document.getElementById('surveyModal').classList.remove('active');
+          
+          alert('Thank you for your feedback! Your response has been recorded.');
+          
+        } catch (error) {
+          console.error('Error saving survey to Firestore:', error);
+          
+          // Fallback to localStorage if Firestore fails
+          localStorage.setItem(`survey_completed_${user.uid}`, 'true');
+          document.getElementById('surveyBanner').classList.remove('show');
+          document.getElementById('surveyModal').classList.remove('active');
+          
+          alert('Thank you for your feedback! Your response has been recorded.');
+        }
+      });
+
+      // Close modal when clicking outside
+      document.getElementById('surveyModal').addEventListener('click', (e) => {
+        if (e.target.id === 'surveyModal') {
+          closeSurvey();
+        }
+      });
+
+      // Survey status will be checked in onAuthStateChanged - no need for duplicate check
+    });
+
+    // Update survey status check when auth state changes
+    onAuthStateChanged(auth, async (user) => {
+      console.log('=== AUTH STATE CHANGED ===');
+      console.log('User:', user ? user.uid : 'No user');
+      
+      if (!user) {
+        console.log('No user - redirecting to login');
+        window.location.href = "Login.html";
+        return;
+      }
+
+      console.log('User authenticated, loading business data...');
+      
+      try {
+        const docRef = doc(db, "businessUsers", user.uid);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const businessName = data.businessName || user.email || "Business User";
+          headerTitle.textContent = `Welcome, ${businessName}`;
+          console.log('Business data loaded:', data);
+        } else {
+          headerTitle.textContent = `Welcome, ${user.email || "Business User"}`;
+          console.log('No business data found for user');
+        }
+      } catch (error) {
+        console.error("Error fetching business user data:", error);
+        headerTitle.textContent = `Welcome, ${user.email || "Business User"}`;
+      }
+      
+      console.log('Starting survey status check...');
+      // Check survey status (this will create testimonial document if needed)
+      await checkSurveyStatus();
+    });
+  </script>
+</body>
+
+</html>
