@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 
 // Serve static files from the "FYP Websites" directory
-app.use(express.static(path.join(__dirname, 'FYP Websites')));
+app.use(express.static(path.join(__dirname, 'FYP-25-S2-09-main', 'FYP Websites')));
 
 // Handle SPA routing - serve index.html for all routes
 app.get('*', (req, res) => {
@@ -40,15 +40,15 @@ app.get('*', (req, res) => {
 
   // If requesting a specific HTML file, serve it
   if (htmlFiles.includes(requestedFile)) {
-    res.sendFile(path.join(__dirname, 'FYP Websites', requestedFile));
+    res.sendFile(path.join(__dirname, 'FYP-25-S2-09-main', 'FYP Websites', requestedFile));
   } 
   // If requesting root, serve index.html
   else if (requestedFile === '/') {
-    res.sendFile(path.join(__dirname, 'FYP Websites', 'index.html'));
+    res.sendFile(path.join(__dirname, 'FYP-25-S2-09-main', 'FYP Websites', 'index.html'));
   }
   // For any other route, serve index.html (SPA behavior)
   else {
-    res.sendFile(path.join(__dirname, 'FYP Websites', 'index.html'));
+    res.sendFile(path.join(__dirname, 'FYP-25-S2-09-main', 'FYP Websites', 'index.html'));
   }
 });
 
