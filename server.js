@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 // Enable CORS for all routes
 app.use(cors());
 
-// Serve static files from the "FYP-25-S2-09-main/FYP Websites" directory
+// Serve static files from the "FYP Websites" directory
 app.use(express.static(path.join(__dirname, 'FYP-25-S2-09-main', 'FYP Websites')));
 
 // Handle routing - serve specific HTML files
@@ -38,8 +38,13 @@ app.get('*', (req, res) => {
     'SystemAdmin.html'
   ];
 
-  // Remove leading slash for file matching
+  // Remove leading slash for file matching and handle case insensitivity
   const fileName = requestedFile.startsWith('/') ? requestedFile.substring(1) : requestedFile;
+  
+  // Find matching file (case insensitive)
+  const matchingFile = htmlFiles.find(file => 
+    file.toLowerCase() === fileName.toLowerCase()
+  );
   
   // If requesting root, serve index.html
   if (requestedFile === '/') {
@@ -47,9 +52,9 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'FYP-25-S2-09-main', 'FYP Websites', 'index.html'));
   }
   // If requesting a specific HTML file that exists, serve it
-  else if (htmlFiles.includes(fileName)) {
-    console.log(`📄 Serving: ${fileName}`);
-    res.sendFile(path.join(__dirname, 'FYP-25-S2-09-main', 'FYP Websites', fileName));
+  else if (matchingFile) {
+    console.log(`📄 Serving: ${matchingFile}`);
+    res.sendFile(path.join(__dirname, 'FYP-25-S2-09-main', 'FYP Websites', matchingFile));
   }
   // For any other route, check if it's a static asset first
   else {
@@ -68,7 +73,6 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`🚀 Wise Fitness server is running on port ${PORT}`);
   console.log(`📱 Access your website at: http://localhost:${PORT}`);
-  console.log(`📁 Serving files from: ${path.join(__dirname, 'FYP-25-S2-09-main', 'FYP Websites')}`);
 });
 
 // Graceful shutdown
